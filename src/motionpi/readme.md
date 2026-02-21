@@ -22,13 +22,6 @@ Using Rasbian OS 64 list
 sudo apt update
 sudo apt upgrade -y
 ```
-### Enable camera
-
-```
-sudo raspi-config
-(Interface options > Camera > Enable)
-sudo reboot
-```
 
 ### Install system packages
 
