@@ -5,8 +5,54 @@ source .venv/bin/activate
 ```
 
 
-Hardware
+## Hardware
 
 
 	Raspberry Pi Camera Module 3 NoIR - Wide-angle × 1
 	PIR Camera Case for Raspberry Pi 4 × 1
+
+
+## Installation
+
+### Initial set up of pi
+
+Using Rasbian OS 64 list
+
+```
+sudo apt update
+sudo apt upgrade -y
+```
+### Enable camera
+
+```
+sudo raspi-config
+(Interface options > Camera > Enable)
+sudo reboot
+```
+
+### Install system packages
+
+After rebooting, install python, Camera stack (Bookworm), and PIR GPIO:
+```
+sudo apt install -y git python3-venv python3-pip
+sudo apt install -y python3-picamera2
+sudo apt install -y python3-rpi.gpio
+```
+
+### Clone repo
+
+```
+git clone https://github.com/ashterism/motionpi.git
+```
+
+### Create and activate venv
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### Run (using /src and no project.toml yet)
+
+```
+PYTHONPATH=src python3 -m motionpi.motion_trigger
+```
