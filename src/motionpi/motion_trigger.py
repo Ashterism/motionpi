@@ -3,7 +3,7 @@ import time
 import logging
 
 from .utils import logging_config
-from .config import mode
+from .utils.environment_detector import detect_runmode
 from .storage import Storage
 from .camera import Camera
 from .pir import PIR
@@ -14,26 +14,30 @@ logger = logging.getLogger(__name__)
 """ contorls process of triggering action and then... when / how to trigger again 
     run this file only, use: PYTHONPATH=src python -m motionpi.motion_trigger """
 
-cam = Camera(mode)
-pir = PIR(mode)
-storage = Storage()
+def motion_trigger():
+
+    runmode = detect_runmode()
+    cam = Camera(runmode)
+    pir = PIR(runmode)
+    storage = Storage()
 
 
-""" QUESTION - does this PIR sensor have a "hold time" """
+    """ MOVE TO CONFIG """
 
-secs_between_pir_polls = 0.3
+    secs_between_pir_polls = 0.3
 
-photo_burst_count = 3
-photo_burst_gap_secs = 0.5
-photo_cooldown_in_secs = 8
+    photo_burst_count = 3
+    photo_burst_gap_secs = 0.5
+    photo_cooldown_in_secs = 8
+
+    """ just the above """
 
 #video_length_in_secs = 10
 
-keep_running = True
+    keep_running = True
 
-storage.ensure_runtime_dirs()
+    storage.ensure_runtime_dirs()
 
-def motion_trigger():
     last_trigger_time = datetime.now()
 
     while keep_running:
