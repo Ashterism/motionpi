@@ -10,6 +10,9 @@ source .venv/bin/activate
 
 	Raspberry Pi Camera Module 3 NoIR - Wide-angle × 1
 	PIR Camera Case for Raspberry Pi 4 × 1
+	HC-SR501 style PIR
+
+![PIR board](../../.readme_imgs/pir_board.png)
 
 
 ## Installation

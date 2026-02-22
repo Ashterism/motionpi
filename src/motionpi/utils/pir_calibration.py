@@ -21,7 +21,7 @@ def pir_calibration():
         pir_reading = pir.motion_detected()
         pir_reading_time = datetime.now()
         if pir_reading == last_reading:
-            time_in_state = (pir_reading_time - last_reading_time).total_seconds
+            time_in_state = (pir_reading_time - last_reading_time).total_seconds()
         else:
             time_in_state = 0
             last_reading_time = pir_reading_time
