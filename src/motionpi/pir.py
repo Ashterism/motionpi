@@ -29,7 +29,7 @@ class PIR:
 
             self.GPIO.setmode(self.GPIO.BCM)
             self.PIR_PIN = 17
-            self.GPIO.setup(self.PIR_PIN, self.GPIO.IN)
+            self.GPIO.setup(self.PIR_PIN, self.GPIO.IN, pull_up_down=self.GPIO.PUD_DOWN)
 
         else:
             # load mock data once

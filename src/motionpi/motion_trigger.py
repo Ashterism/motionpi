@@ -21,7 +21,6 @@ def motion_trigger():
     pir = PIR(runmode)
     storage = Storage()
 
-
     """ MOVE TO CONFIG """
 
     secs_between_pir_polls = 0.3
