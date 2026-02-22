@@ -4,6 +4,8 @@ from datetime import datetime
 from ..pir import PIR
 from .environment_detector import detect_runmode
 
+# cd ~/motionpi && source .venv/bin/activate && PYTHONPATH=src python3 -m motionpi.utils.pir_calibration
+
     
 def pir_calibration():
     
@@ -31,3 +33,5 @@ def pir_calibration():
    
         time.sleep(1)
 
+if __name__ == "__main__":
+    pir_calibration()
