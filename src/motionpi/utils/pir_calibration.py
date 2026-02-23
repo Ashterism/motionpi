@@ -4,8 +4,15 @@ from datetime import datetime
 from ..pir import PIR
 from .environment_detector import detect_runmode
 
-# cd ~/motionpi && source .venv/bin/activate && PYTHONPATH=src python3 -m motionpi.utils.pir_calibration
+"""
+Use the below to run as a test on pi:
+cd ~/motionpi && source .venv/bin/activate && PYTHONPATH=src python3 -m motionpi.utils.pir_calibration
 
+note: the PIR sensor has a short internal "lockout" period
+so with the delay turned down it will show (for example):
+movement, no movement (~3secs), movement, no movement (~3secs)...
+even if there is constant movement
+"""
     
 def pir_calibration():
     

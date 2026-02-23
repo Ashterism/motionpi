@@ -14,6 +14,11 @@ source .venv/bin/activate
 
 ![PIR board](../../.readme_imgs/pir_board.png)
 
+To calibrate sensitivity / delay, use:
+src/motionpi/utils/pir_calibration.py
+
+Anti-clockwise to decrese, Clockwise to increase
+
 
 ## Installation
 

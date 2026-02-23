@@ -1,0 +1,11 @@
+
+
+
+set up main to call motion_trigger
+set up toml so can be a package and run properly
+
+
+Add an autorun file for this
+
+- then v0.2.0 it
+
