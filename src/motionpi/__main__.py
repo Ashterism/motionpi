@@ -1,7 +1,7 @@
 from .process.storage import Storage
 from .process.pid_manager import has_pid, delete_pid
 
-# Entry point for lapsepi when run with: python -m lapsepi
+# Entry point for motionpi when run with: python -m motionpi
 #
 # Responsibilities:
 # - Clean up any stale state from previous (possibly dirty) shutdown
@@ -9,6 +9,7 @@ from .process.pid_manager import has_pid, delete_pid
 #
 # Future:
 # - Hook in graceful shutdown (button / signal handling)
+
 
 storage = Storage()
 
@@ -40,8 +41,8 @@ def check_last_shutdown():
 
 
 def start_flask():
-    from lapsepi.web.app import app
-    app.run(host="0.0.0.0", port=5002)
+    from motionpi.web.app import app
+    app.run(host="0.0.0.0", port=5003)
 
 
 def shutdown_gracefully():

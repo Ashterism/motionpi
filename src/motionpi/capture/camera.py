@@ -3,7 +3,7 @@ from ..process.storage import Storage
 from ..process.last_image import update_last_image_taken
 
 from ..mocks.mock_file_maker import create_mock_jpg
-from ....archive.utils.environment_detector import detect_runmode
+from ..utils.environment_detector import detect_runmode
 
 
 storage = Storage()

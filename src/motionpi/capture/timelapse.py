@@ -4,7 +4,7 @@ from pathlib import Path
 from .camera import Camera
 from ..process.storage import Storage
 from ..process.last_image import read_last_image_taken
-from ...src.motionpi.process import pid_manager as pid
+from ..process import pid_manager as pid
 
 camera = Camera()
 storage = Storage()
