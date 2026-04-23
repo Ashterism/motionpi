@@ -133,5 +133,5 @@ if __name__ == "__main__":
 
 
 """
-python -m lapsepi.web.app
+python -m motionpi.web.app
 """

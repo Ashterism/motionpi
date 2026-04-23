@@ -37,7 +37,7 @@ def get_timelapse(interval, runtime):
         [
             sys.executable,
             "-m",
-            "lapsepi.capture.timelapse",
+            "motionpi.capture.timelapse",
             str(directory),
             str(interval),
             str(runtime),

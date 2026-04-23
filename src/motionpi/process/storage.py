@@ -8,7 +8,7 @@ class Storage:
     def __init__(self):
         # save directories into temp memory)
         base_dir = Path(__file__).resolve().parent.parent.parent.parent
-        self.data_dir = base_dir / "data"  # /data directory (e.g /lapsepi/data)
+        self.data_dir = base_dir / "data"  # /data directory (e.g /motionpi/data)
         self.single_img_dir = self.data_dir / "images"
         self.session_dir = self.data_dir / "sessions"  # taken images directory
         self.videos_dir = self.data_dir / "videos"  # recorded video directory
