@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>lapsepi - gallery</title>
+    <link rel="stylesheet" href="/static/main.css">
+</head>
+<body>
+    <main class="page">
+        <header class="card">
+            <div class="card-body card-body-tight page-header-row">
+                <div class="page-header-copy">
+                    <h1 class="page-title">lapsepi</h1>
+                    <p class="page-subtitle">Timelapse camera gallery</p>
+                </div>
+                <a href="/" class="icon-button" aria-label="Home">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke-width="1.5" stroke="currentColor" class="nav-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <section class="card">
+            <div class="card-body settings-card-body">
+                <h2 class="section-title">Timelapse sessions</h2>
+
+                <form method="get" action="/gallery">
+                    <div class="controls-stack">
+                        <select name="session" class="select-control" id="image-session-select" aria-label="Image sessions" onchange="this.form.submit()">
+                            <option value="" disabled {% if not sessions or not selected_session %}selected{% endif %}>Sessions ↓</option>
+                            {% for session in sessions %}
+                                <option value="{{ session.path }}" {% if session.path == selected_session %}selected{% endif %}>{{ session.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <div class="gallery-preview-frame">
+                <button id="arrow-left" class="gallery-arrow gallery-arrow-left" type="button" aria-label="Previous image">◀</button>
+                {% if session_media %}
+                    <img id="preview-image" src="/data/{{ session_media[0].path }}" class="preview-image" alt="Selected session image"
+                         onerror="this.onerror=null;this.src='/static/imgs/no_image.png';">
+                {% else %}
+                    <img id="preview-image" src="/static/imgs/no_image.png" class="preview-image" alt="No image available">
+                {% endif %}
+                <button id="arrow-right" class="gallery-arrow gallery-arrow-right" type="button" aria-label="Next image">▶</button>
+            </div>
+
+            <div class="card-body card-body-tight">
+                <p class="status-line">Image:</p>
+
+                <div class="controls-stack">
+                    <select name="image-select" class="select-control" id="image-select" aria-label="Select image">
+                        <option value="" disabled {% if not session_media %}selected{% endif %}>Select image ↓</option>
+                        {% for media in session_media %}
+                            <option value="{{ media.path }}" {% if loop.first %}selected{% endif %}>{{ media.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-body settings-card-body">
+                <h2 class="section-title">Timelapse videos</h2>
+
+                <div class="controls-stack">
+                    <select name="video-select" class="select-control" id="video-select" aria-label="Timelapse videos">
+                        <option selected disabled value="">Videos ↓</option>
+                        {% for video in timelapse_videos %}
+                            <option value="{{ video.path }}" {% if loop.first %}selected{% endif %}>{{ video.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="gallery-preview-frame">
+                {% if timelapse_videos %}
+                    <video id="preview-video" class="preview-image" controls>
+                        <source src="/data/{{ timelapse_videos[0].path }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                {% else %}
+                    <img src="/static/imgs/no_image.png" class="preview-image" alt="No video available">
+                {% endif %}
+            </div>
+
+            {% if timelapse_videos %}
+            <div class="card-body card-body-tight">
+                <p class="status-line"><a id="download-video-link" href="#" download>Download MP4</a></p>
+            </div>
+            {% endif %}
+        </section>
+
+        <form method="post" action="/create_video" id="create-video-form">
+            <section class="card">
+                <div class="card-body settings-card-body">
+                    <h2 class="section-title">Create timelapse</h2>
+
+                    <div class="controls-stack">
+                        <select name="session" class="select-control" id="create-session-select" aria-label="Create session">
+                            <option disabled value="" {% if not selected_session %}selected{% endif %}>Session ↓</option>
+                            {% for session in sessions %}
+                                <option value="{{ session.path }}" {% if session.path == selected_session %}selected{% endif %}>{{ session.label }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <select name="fps" class="select-control" id="fps-select" aria-label="Frames per second">
+                            <option value="24" selected>24 (cinematic)</option>
+                            <option value="30">30</option>
+                        </select>
+                    </div>
+
+                    <p class="estimate-text" id="video-estimate-text">Estimated runtime: -</p>
+                </div>
+            </section>
+
+            <section>
+                <button id="create-video-button" class="button"
+                    type="submit">Create timelapse video
+                </button>
+            </section>
+
+        </form>
+    </main>
+<script id="session-media-data" type="application/json">
+    {{ session_media | tojson }}
+</script>
+<script id="timelapse-video-data" type="application/json">
+    {{ timelapse_videos | tojson }}
+</script>
+<script>
+    const imageSelect = document.getElementById("image-select");
+    const previewImage = document.getElementById("preview-image");
+    const arrowLeft = document.getElementById("arrow-left");
+    const arrowRight = document.getElementById("arrow-right");
+    const sessionMediaData = document.getElementById("session-media-data");
+    const videoSelect = document.getElementById("video-select");
+    const previewVideo = document.getElementById("preview-video");
+    const timelapseVideoData = document.getElementById("timelapse-video-data");
+    const downloadVideoLink = document.getElementById("download-video-link");
+    const createVideoForm = document.getElementById("create-video-form");
+    const createVideoButton = document.getElementById("create-video-button");
+    const createSessionSelect = document.getElementById("create-session-select");
+    const fpsSelect = document.getElementById("fps-select");
+    const videoEstimateText = document.getElementById("video-estimate-text");
+
+    let sessionMedia = [];
+    let timelapseVideos = [];
+
+    if (sessionMediaData) {
+        try {
+            sessionMedia = JSON.parse(sessionMediaData.textContent);
+        } catch (error) {
+            sessionMedia = [];
+        }
+    }
+    if (timelapseVideoData) {
+        try {
+            timelapseVideos = JSON.parse(timelapseVideoData.textContent);
+        } catch (error) {
+            timelapseVideos = [];
+        }
+    }
+
+    function updateVideoEstimate() {
+        if (!fpsSelect || !videoEstimateText) {
+            return;
+        }
+
+        const fps = Number(fpsSelect.value);
+        const frames = sessionMedia.length;
+
+        if (!fps || !frames) {
+            videoEstimateText.textContent = "Estimated runtime: -";
+            return;
+        }
+
+        const seconds = Math.max(1, Math.floor(frames / fps));
+
+        let formatted;
+        if (seconds < 60) {
+            formatted = `${seconds}s`;
+        } else {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            formatted = secs === 0 ? `${mins}m` : `${mins}m ${secs}s`;
+        }
+
+        videoEstimateText.textContent = `Estimated runtime: ~${formatted}`;
+    }
+
+    function updateGalleryImage(index) {
+        if (!sessionMedia.length || !previewImage || !imageSelect) {
+            return;
+        }
+
+        const media = sessionMedia[index];
+        if (!media) {
+            return;
+        }
+
+        previewImage.onerror = function () {
+            previewImage.onerror = null;
+            previewImage.src = "/static/imgs/no_image.png";
+        };
+        previewImage.src = "/data/" + media.path;
+        imageSelect.value = media.path;
+    }
+
+    function updateGalleryVideo() {
+        if (!videoSelect || !previewVideo || !downloadVideoLink || !timelapseVideos.length) {
+            return;
+        }
+
+        const selectedVideo = timelapseVideos.find(function (video) {
+            return video.path === videoSelect.value;
+        });
+
+        if (!selectedVideo) {
+            previewVideo.removeAttribute("src");
+            previewVideo.load();
+            downloadVideoLink.href = "#";
+            downloadVideoLink.removeAttribute("download");
+            return;
+        }
+
+        previewVideo.src = "/data/" + selectedVideo.path;
+        previewVideo.load();
+
+        downloadVideoLink.href = "/data/" + selectedVideo.path;
+        downloadVideoLink.setAttribute("download", selectedVideo.filename || "timelapse.mp4");
+    }
+
+    if (imageSelect && previewImage && sessionMedia.length) {
+        imageSelect.addEventListener("change", function () {
+            const selectedIndex = sessionMedia.findIndex(function (media) {
+                return media.path === imageSelect.value;
+            });
+
+            if (selectedIndex !== -1) {
+                updateGalleryImage(selectedIndex);
+            }
+        });
+
+        if (arrowLeft) {
+            arrowLeft.addEventListener("click", function () {
+                const currentIndex = sessionMedia.findIndex(function (media) {
+                    return media.path === imageSelect.value;
+                });
+
+                if (currentIndex === -1) {
+                    return;
+                }
+
+                const nextIndex = currentIndex === 0 ? sessionMedia.length - 1 : currentIndex - 1;
+                updateGalleryImage(nextIndex);
+            });
+        }
+
+        if (arrowRight) {
+            arrowRight.addEventListener("click", function () {
+                const currentIndex = sessionMedia.findIndex(function (media) {
+                    return media.path === imageSelect.value;
+                });
+
+                if (currentIndex === -1) {
+                    return;
+                }
+
+                const nextIndex = currentIndex === sessionMedia.length - 1 ? 0 : currentIndex + 1;
+                updateGalleryImage(nextIndex);
+            });
+        }
+    }
+
+    if (videoSelect && previewVideo && downloadVideoLink && timelapseVideos.length) {
+        videoSelect.addEventListener("change", updateGalleryVideo);
+        updateGalleryVideo();
+    }
+
+    if (fpsSelect) {
+        fpsSelect.addEventListener("change", updateVideoEstimate);
+    }
+
+    if (createSessionSelect) {
+        createSessionSelect.addEventListener("change", updateVideoEstimate);
+    }
+
+    if (createVideoForm && createVideoButton) {
+        createVideoForm.addEventListener("submit", function () {
+            createVideoButton.disabled = true;
+            createVideoButton.classList.add("button-running");
+        });
+    }
+
+    updateVideoEstimate();
+</script>
+</body>
+</html>

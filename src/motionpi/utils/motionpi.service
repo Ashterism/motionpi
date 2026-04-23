@@ -1,0 +1,14 @@
+[Unit]
+Description=Keep motionpi running even after restart
+After=multi-user.target
+
+[Service]
+Type=simple
+User=ash
+RemainAfterExit=no
+WorkingDirectory=/home/ash/motionpi
+ExecStart=/home/ash/motionpi/.venv/bin/python3 -m motionpi
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
