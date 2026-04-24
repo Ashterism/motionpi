@@ -1,4 +1,4 @@
-import time, sys, os
+import time, sys
 from pathlib import Path
 
 from .camera import Camera
@@ -23,23 +23,13 @@ def run_timelapse(directory, interval=5, runtime=15):
 
     camera.close_camera()
     storage.delete_lockfile("camera_in_use")
-    pid.delete_pid()
+    pid.delete_pid("timelapse")
 
 
 def stop_timelapse():
-    timelapse_pid = pid.read_pid()
-    if not timelapse_pid:
+    was_killed = pid.kill_pid("timelapse")
+    if not was_killed:
         return
-    try:
-        os.kill(timelapse_pid, 15)
-    except ProcessLookupError:
-        pass  # process already dead
-
-    # kill process
-    # write json to folder
-    # name  terminated.json
-    # with  datetime: time killed
-    # and   reason: manual_termination
 
     file_path = read_last_image_taken()
     session_dir = storage.data_dir / Path(file_path).parent
@@ -52,10 +42,9 @@ def stop_timelapse():
         "reason": "manual_termination",
     }
 
-    camera.close_camera
+    camera.close_camera()
     storage.write_json(termination_log, content)
     storage.delete_lockfile("camera_in_use")
-    pid.delete_pid()
 
 
 

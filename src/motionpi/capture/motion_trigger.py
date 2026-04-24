@@ -6,6 +6,7 @@ import logging
 from ..utils import logging_config
 from ..utils.environment_detector import detect_runmode
 from ..process.storage import Storage
+from ..process import pid_manager as pid
 from ..capture.camera import Camera
 from ..hardware.pir import PIR
 
@@ -56,6 +57,15 @@ def motion_trigger(directory):
             logger.debug("no motion detected")
             pass
         time.sleep(secs_between_pir_polls)
+
+
+def stop_motion_sensor():
+    was_killed = pid.kill_pid("motion_sensor")
+    if not was_killed:
+        return
+
+    storage = Storage()
+    storage.delete_lockfile("camera_in_use")
 
 
 

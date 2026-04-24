@@ -1,29 +1,49 @@
-from pathlib import Path
+import os
+import signal
 
 from .storage import Storage
 
 storage = Storage()
 
-PID_FILE = storage.meta_dir / "motion_sensor_process.pid"
+def get_pid_file(process_name):
+    return storage.meta_dir / f"{process_name}.pid"
 
 
-def write_pid(pid):
+def write_pid(process_name, pid):
+    pid_file = get_pid_file(process_name)
     storage.meta_dir.mkdir(parents=True, exist_ok=True)
-    with open(PID_FILE, "w") as f:
+    with open(pid_file, "w") as f:
         f.write(str(pid))
 
 
-def read_pid():
-    if not PID_FILE.exists():
+def read_pid(process_name):
+    pid_file = get_pid_file(process_name)
+    if not pid_file.exists():
         return None
-    with open(PID_FILE, "r") as f:
+    with open(pid_file, "r") as f:
         return int(f.read().strip())
 
 
-def delete_pid():
-    if PID_FILE.exists():
-        PID_FILE.unlink()
+def delete_pid(process_name):
+    pid_file = get_pid_file(process_name)
+    if pid_file.exists():
+        pid_file.unlink()
 
 
-def has_pid():
-    return PID_FILE.exists()
+def has_pid(process_name):
+    pid_file = get_pid_file(process_name)
+    return pid_file.exists()
+
+def kill_pid(process_name):
+    process_id = read_pid(process_name)
+    if process_id is None:
+        return False
+
+    try:
+        os.kill(process_id, signal.SIGTERM)
+    except ProcessLookupError:
+        delete_pid(process_name)
+        return False
+
+    delete_pid(process_name)
+    return True

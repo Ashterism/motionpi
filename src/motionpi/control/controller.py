@@ -4,6 +4,7 @@ import time, sys, subprocess
 from ..process import pid_manager as pid
 from ..capture.camera import Camera
 from ..capture.timelapse import stop_timelapse
+from ..capture.motion_trigger import stop_motion_sensor
 from ..process.storage import Storage
 from ..process.video_maker import create_timelapse_video
 
@@ -44,7 +45,7 @@ def get_timelapse(interval, runtime):
         ]
     )
 
-    pid.write_pid(timelapse_process.pid)
+    pid.write_pid("timelapse", timelapse_process.pid)
 
 
 def get_sensor_state():
@@ -73,12 +74,11 @@ def set_sensor_state(state):
             ]
         )
 
-        pid.write_pid(motion_sensor_process.pid)
+        pid.write_pid("motion_sensor", motion_sensor_process.pid)
         storage.write_json(filepath, state)
 
     elif state == "off":
-        pid.kill_pid()
-        storage.delete_lockfile("camera_in_use")
+        stop_motion_sensor()
         storage.write_json(filepath, state)
 
 
@@ -112,4 +112,4 @@ def use_camera(session_type="single_image"):
 if __name__ == "__main__":
     # get_photo()
     get_timelapse(5, 15)
-    print(pid.read_pid())
+    print(pid.read_pid("timelapse"))
