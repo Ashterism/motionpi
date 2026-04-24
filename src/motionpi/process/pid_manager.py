@@ -4,7 +4,7 @@ from .storage import Storage
 
 storage = Storage()
 
-PID_FILE = storage.meta_dir / "timelapse.pid"
+PID_FILE = storage.meta_dir / "motion_sensor_process.pid"
 
 
 def write_pid(pid):

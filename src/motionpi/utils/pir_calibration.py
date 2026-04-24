@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 
-from ..pir import PIR
+from ..hardware.pir import PIR
 from .environment_detector import detect_runmode
 
 """

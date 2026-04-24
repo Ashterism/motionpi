@@ -1,12 +1,13 @@
 from datetime import datetime
 import time
+import sys
 import logging
 
-from .utils import logging_config
-from .utils.environment_detector import detect_runmode
-from .storage import Storage
-from .camera import Camera
-from .pir import PIR
+from ..utils import logging_config
+from ..utils.environment_detector import detect_runmode
+from ..process.storage import Storage
+from ..capture.camera import Camera
+from ..hardware.pir import PIR
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 """ contorls process of triggering action and then... when / how to trigger again 
     run this file only, use: PYTHONPATH=src python -m motionpi.motion_trigger """
 
-def motion_trigger():
+def motion_trigger(directory):
 
     runmode = detect_runmode()
     cam = Camera(runmode)
@@ -40,12 +41,12 @@ def motion_trigger():
     last_trigger_time = datetime.now()
 
     while keep_running:
-        if pir.motion_detected() == 1:
+        if pir.motion_detected():
             timepassed = (datetime.now() - last_trigger_time).total_seconds()
             logger.debug(f"time passed: {timepassed}")
 
             for shots in range(photo_burst_count):
-                cam.take_image()
+                cam.take_image(directory)
                 time.sleep(photo_burst_gap_secs)
                 
             last_trigger_time = datetime.now()
@@ -58,6 +59,8 @@ def motion_trigger():
 
 
 
-
 if __name__ == "__main__":
-    motion_trigger()
+    if len(sys.argv) < 2:
+        raise ValueError("Directory argument required")
+    directory = sys.argv[1]
+    motion_trigger(directory)

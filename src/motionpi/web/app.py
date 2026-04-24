@@ -7,7 +7,14 @@ from flask import (
     request,
 )
 
-from ..control.controller import get_photo, get_timelapse, get_timelapse_stopped, get_timelapse_video
+from ..control.controller import (
+    get_photo,
+    get_timelapse,
+    get_timelapse_stopped,
+    get_timelapse_video,
+    get_sensor_state,
+    set_sensor_state,
+)
 from ..process.storage import Storage
 
 storage = Storage()
@@ -40,12 +47,14 @@ def home():
                     taken_time = dt.strftime("%y/%m/%d %H:%M:%S")
 
     is_running = storage.check_lockfile("camera_in_use")
+    motion_sensor_state = get_sensor_state()
 
     return render_template(
         "index.html",
         image_path=image_path,
         taken_time=taken_time,
         is_running=is_running,
+        motion_sensor_state=motion_sensor_state,
     )
 
 
@@ -79,6 +88,14 @@ def status():
 @app.route("/take_photo", methods=["POST"])
 def take_photo():
     get_photo()
+    return redirect("/")
+
+
+# route to set motion sensor state
+@app.route("/motion_sensor", methods=["POST"])
+def motion_sensor():
+    state = request.form.get("motion-sensor")
+    set_sensor_state(state)
     return redirect("/")
 
 

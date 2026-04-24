@@ -52,14 +52,16 @@
         <section class="card">
             <div class="card-body settings-card-body">
                 <h2 class="section-title">Motion sensor</h2>
-                <p class="status-line">Placeholder controls for motion detection.</p>
+                <p class="status-line">Toggle motion detection.</p>
 
-                <div class="controls-stack">
-                    <select name="motion-sensor" class="select-control" id="motion-sensor-select" aria-label="Motion sensor">
-                        <option value="off" selected>Off</option>
-                        <option value="on">On</option>
-                    </select>
-                </div>
+                <form method="post" action="/motion_sensor">
+                    <div class="controls-stack">
+                        <select name="motion-sensor" class="select-control" id="motion-sensor-select" aria-label="Motion sensor" onchange="this.form.submit()">
+                            <option value="off" {% if motion_sensor_state == "off" %}selected{% endif %}>Off</option>
+                            <option value="on" {% if motion_sensor_state == "on" %}selected{% endif %}>On</option>
+                        </select>
+                    </div>
+                </form>
             </div>
         </section>
 

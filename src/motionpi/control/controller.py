@@ -47,6 +47,41 @@ def get_timelapse(interval, runtime):
     pid.write_pid(timelapse_process.pid)
 
 
+def get_sensor_state():
+    filepath = storage.meta_dir / "sensor_state.json"
+    read_state = storage.read_json(filepath)
+    if read_state == None:
+        return "off"
+    else:
+        return read_state
+
+
+def set_sensor_state(state):
+    filepath = storage.meta_dir / "sensor_state.json"
+
+    if state == "on":
+        directory = use_camera("timelapse")
+        if directory == None:
+            return
+
+        motion_sensor_process = subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "motionpi.capture.motion_trigger",
+                str(directory),
+            ]
+        )
+
+        pid.write_pid(motion_sensor_process.pid)
+        storage.write_json(filepath, state)
+
+    elif state == "off":
+        pid.kill_pid()
+        storage.delete_lockfile("camera_in_use")
+        storage.write_json(filepath, state)
+
+
 def get_timelapse_stopped():
     stop_timelapse()
 
@@ -71,6 +106,7 @@ def use_camera(session_type="single_image"):
     directory = storage.build_folder_path(session_type)
 
     return directory
+
 
 
 if __name__ == "__main__":

@@ -1,5 +1,10 @@
 
 
+Make PID manager multi-use
+Consider how to manage timelapse and motion images/ fodlers on one device
+
+Review and harden / error protect motion_trigger - so more inline with lapsepi rigour
+
 
 set up main to call motion_trigger
 set up toml so can be a package and run properly
