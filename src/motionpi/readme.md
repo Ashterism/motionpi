@@ -59,3 +59,9 @@ PYTHONPATH=src python3 -m motionpi.motion_trigger
 ```
 
 cd ~/motionpi && source .venv/bin/activate && PYTHONPATH=src python3 -m motionpi
+
+
+new
+
+needs
+ ffmpeg

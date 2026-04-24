@@ -11,8 +11,8 @@
 <header class="card">
     <div class="card-body card-body-tight page-header-row">
         <div class="page-header-copy">
-            <h1 class="page-title">lapsepi</h1>
-            <p class="page-subtitle">Timelapse camera control</p>
+            <h1 class="page-title">Motionepi</h1>
+            <p class="page-subtitle">Motion sensor activated camera</p>
         </div>
         <a href="/gallery" class="icon-button" aria-label="Gallery">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -46,6 +46,20 @@
             </div>
             <div class="preview-frame">
                 <img src="{{ image_path }}" class="preview-image" alt="Last captured image">
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-body settings-card-body">
+                <h2 class="section-title">Motion sensor</h2>
+                <p class="status-line">Placeholder controls for motion detection.</p>
+
+                <div class="controls-stack">
+                    <select name="motion-sensor" class="select-control" id="motion-sensor-select" aria-label="Motion sensor">
+                        <option value="off" selected>Off</option>
+                        <option value="on">On</option>
+                    </select>
+                </div>
             </div>
         </section>
 
