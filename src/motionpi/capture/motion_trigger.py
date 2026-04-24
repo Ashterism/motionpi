@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 import time
 import sys
 import logging
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
     run this file only, use: PYTHONPATH=src python -m motionpi.motion_trigger """
 
 def motion_trigger(directory):
+    directory = Path(directory)
 
     runmode = detect_runmode()
     cam = Camera(runmode)
@@ -36,8 +38,6 @@ def motion_trigger(directory):
 #video_length_in_secs = 10
 
     keep_running = True
-
-    storage.ensure_runtime_dirs()
 
     last_trigger_time = datetime.now()
 

@@ -11,7 +11,7 @@
 <header class="card">
     <div class="card-body card-body-tight page-header-row">
         <div class="page-header-copy">
-            <h1 class="page-title">Motionepi</h1>
+            <h1 class="page-title">Motionpi</h1>
             <p class="page-subtitle">Motion sensor activated camera</p>
         </div>
         <a href="/gallery" class="icon-button" aria-label="Gallery">
@@ -24,6 +24,7 @@
     </div>
 </header>
 
+        {% if not is_running %}
         <section class="card">
             <div class="card-body">
                 <h2 class="section-title">Status</h2>
@@ -32,10 +33,11 @@
                 <p class="status-line">Storage: 12.4GB free</p>
             </div>
         </section>
+        {% endif %}
 
         <section>
             <form method="post" action="/take_photo">
-                <button class="button{% if is_running %} button-disabled{% endif %}" type="submit" {% if is_running %}disabled{% endif %}>Take test photo</button>
+                <button class="button{% if is_running or motion_sensor_state == "on" %} button-disabled{% endif %}" type="submit" {% if is_running or motion_sensor_state == "on" %}disabled{% endif %}>Take test photo</button>
             </form>
         </section>
 
@@ -65,6 +67,7 @@
             </div>
         </section>
 
+        {% if motion_sensor_state != "on" %}
         <form method="post" action="/take_timelapse" id="timelapse-form">
 
             <section class="card">
@@ -107,8 +110,9 @@
             </section>
 
         </form>
+        {% endif %}
 
-{% if is_running %}
+{% if is_running and motion_sensor_state != "on" %}
 <section>
     <form method="post" action="/stop_timelapse">
         <button class="button" type="submit">Stop timelapse</button>

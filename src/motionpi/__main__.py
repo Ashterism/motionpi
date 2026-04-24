@@ -23,15 +23,18 @@ def check_last_shutdown():
         storage.delete_lockfile("camera_in_use")
         lockfile_status = "deleted"
 
-    stale_pidfiles = []
+    pid_deleted = False
 
-    for process_name in ("timelapse", "motion_sensor"):
-        if has_pid(process_name):
-            delete_pid(process_name)
-            stale_pidfiles.append(process_name)
+    if has_pid("timelapse"):
+        delete_pid("timelapse")
+        pid_deleted = True
 
-    if stale_pidfiles:
-        pidfile_status = "deleted: " + ", ".join(stale_pidfiles)
+    if has_pid("motion_sensor"):
+        delete_pid("motion_sensor")
+        pid_deleted = True
+
+    if pid_deleted:
+        pidfile_status = "deleted"
 
     dirty_shutdown = "deleted" in (lockfile_status, pidfile_status)
 

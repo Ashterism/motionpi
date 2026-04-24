@@ -1,5 +1,5 @@
 import time
-from .storage import Storage
+from ...archive.motionpi_old.storage import Storage
 
 storage = Storage()
 
