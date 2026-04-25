@@ -1,5 +1,4 @@
 from datetime import datetime
-from pathlib import Path
 import time
 import sys
 import logging
@@ -13,49 +12,59 @@ from ..hardware.pir import PIR
 
 logger = logging.getLogger(__name__)
 
+# controls process of triggering action and then... when / how to trigger again 
 
-""" contorls process of triggering action and then... when / how to trigger again 
-    run this file only, use: PYTHONPATH=src python -m motionpi.motion_trigger """
+""" CONFIG"""
+secs_between_pir_polls = 0.3
 
-def motion_trigger(directory):
-    directory = Path(directory)
+photo_burst_count = 3
+photo_burst_gap_secs = 0.5
+photo_cooldown_in_secs = 8
 
-    runmode = detect_runmode()
-    cam = Camera(runmode)
-    pir = PIR(runmode)
-    storage = Storage()
+INACTIVITY_TIMEOUT_SECS = 60 * 5  # start with 5 mins
 
-    """ MOVE TO CONFIG """
 
-    secs_between_pir_polls = 0.3
+storage = Storage()
+runmode = detect_runmode()
+cam = Camera(runmode)
+pir = PIR(runmode)
 
-    photo_burst_count = 3
-    photo_burst_gap_secs = 0.5
-    photo_cooldown_in_secs = 8
+def motion_trigger(inactivity_timeout=None):
+    timeout = inactivity_timeout if inactivity_timeout else INACTIVITY_TIMEOUT_SECS
+    directory = None
 
-    """ just the above """
+    active_session = False
+    last_motion_time = None
 
-#video_length_in_secs = 10
-
-    keep_running = True
-
-    last_trigger_time = datetime.now()
-
-    while keep_running:
+    while True:
         if pir.motion_detected():
-            timepassed = (datetime.now() - last_trigger_time).total_seconds()
-            logger.debug(f"time passed: {timepassed}")
+            logger.debug("motion detected")
+
+            if not active_session:
+                directory = storage.build_folder_path("timelapse")
+                active_session = True
+                last_motion_time = datetime.now()
+                logger.info(f"Starting motion session: {directory}")
 
             for shots in range(photo_burst_count):
                 cam.take_image(directory)
                 time.sleep(photo_burst_gap_secs)
-                
-            last_trigger_time = datetime.now()
+
+            last_motion_time = datetime.now()
             time.sleep(photo_cooldown_in_secs)
 
         else:
             logger.debug("no motion detected")
-            pass
+
+            if active_session and last_motion_time:
+                idle_time = (datetime.now() - last_motion_time).total_seconds()
+
+                if idle_time > timeout:
+                    logger.info("Ending motion session due to inactivity")
+                    active_session = False
+                    last_motion_time = None
+                    directory = None
+
         time.sleep(secs_between_pir_polls)
 
 
@@ -64,13 +73,13 @@ def stop_motion_sensor():
     if not was_killed:
         return
 
-    storage = Storage()
     storage.delete_lockfile("camera_in_use")
 
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        raise ValueError("Directory argument required")
-    directory = sys.argv[1]
-    motion_trigger(directory)
+    inactivity_timeout = None
+    if len(sys.argv) > 1 and sys.argv[1] != "None":
+        inactivity_timeout = int(sys.argv[1])
+
+    motion_trigger(inactivity_timeout)

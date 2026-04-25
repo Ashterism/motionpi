@@ -34,7 +34,7 @@ class PIR:
         else:
             # load mock data once
             rootpath = Path(__file__).resolve().parent.parent
-            mock_path = rootpath / "mocks" / "mocks_pir.csv"
+            mock_path = rootpath / "mocks" / "mocks_pir_5mins.csv"
 
             with open(mock_path, "r") as f:
                 reader = csv.reader(f)

@@ -13,7 +13,6 @@ from ..process.video_maker import create_timelapse_video
 camera = Camera()
 storage = Storage()
 
-
 # CONTROL POINTS
 
 
@@ -60,6 +59,8 @@ def get_sensor_state():
 def set_sensor_state(state):
     filepath = storage.meta_dir / "sensor_state.json"
 
+    inactivity_timeout = None # for wiring up later
+
     if state == "on":
         directory = use_camera("timelapse")
         if directory == None:
@@ -70,7 +71,7 @@ def set_sensor_state(state):
                 sys.executable,
                 "-m",
                 "motionpi.capture.motion_trigger",
-                str(directory),
+                str(inactivity_timeout),
             ]
         )
 
