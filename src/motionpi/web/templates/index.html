@@ -8,21 +8,21 @@
 </head>
 <body>
     <main class="page">
-<header class="card">
-    <div class="card-body card-body-tight page-header-row">
-        <div class="page-header-copy">
-            <h1 class="page-title">Motionpi</h1>
-            <p class="page-subtitle">Motion sensor activated camera</p>
-        </div>
-        <a href="/gallery" class="icon-button" aria-label="Gallery">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                 stroke-width="1.5" stroke="currentColor" class="nav-icon">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-            </svg>
-        </a>
-    </div>
-</header>
+        <header class="card">
+            <div class="card-body card-body-tight page-header-row">
+                <div class="page-header-copy">
+                    <h1 class="page-title">Motionpi</h1>
+                    <p class="page-subtitle">Motion sensor activated camera</p>
+                </div>
+                <a href="/gallery" class="icon-button" aria-label="Gallery">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="1.5" stroke="currentColor" class="nav-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                    </svg>
+                </a>
+            </div>
+        </header>
 
         {% if not is_running %}
         <section class="card">
@@ -46,10 +46,35 @@
                 <h2 class="section-title">Last image</h2>
                 <p class="image-label">Taken: {{ taken_time }}</p>
             </div>
-            <div class="preview-frame">
-                <img src="{{ image_path }}" class="preview-image" alt="Last captured image">
+
+            <div class="preview-frame preview-frame-overlay">
+                <img id="last-image-preview"
+                     src="{{ image_path }}"
+                     class="preview-image"
+                     alt="Last captured image">
+
+                <button id="open-lightbox-button"
+                        class="overlay-button"
+                        type="button"
+                        aria-label="View full screen">
+                    ⤢
+                </button>
             </div>
         </section>
+
+        <div id="image-lightbox" class="image-lightbox" hidden>
+            <button id="lightbox-close"
+                    class="lightbox-close"
+                    type="button"
+                    aria-label="Close image preview">
+                ×
+            </button>
+
+            <img id="lightbox-image"
+                 class="lightbox-image"
+                 src=""
+                 alt="Full size preview">
+        </div>
 
         <section class="card">
             <div class="card-body settings-card-body">
@@ -148,6 +173,46 @@
         const runtimeSelect = document.getElementById("runtime-select");
         const estimatedFrames = document.getElementById("estimated-frames");
         const estimatedLength = document.getElementById("estimated-length");
+
+        const lastImagePreview = document.getElementById("last-image-preview");
+        const imageLightbox = document.getElementById("image-lightbox");
+        const lightboxImage = document.getElementById("lightbox-image");
+        const lightboxClose = document.getElementById("lightbox-close");
+        const openLightboxButton = document.getElementById("open-lightbox-button");
+
+        if (openLightboxButton && imageLightbox && lightboxImage && lastImagePreview) {
+            openLightboxButton.addEventListener("click", function () {
+                lightboxImage.src = lastImagePreview.src;
+                imageLightbox.hidden = false;
+            });
+        }
+
+        if (lightboxClose) {
+            lightboxClose.addEventListener("click", closeLightbox);
+        }
+
+        if (imageLightbox) {
+            imageLightbox.addEventListener("click", function (event) {
+                if (event.target === imageLightbox) {
+                    closeLightbox();
+                }
+            });
+        }
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                closeLightbox();
+            }
+        });
+
+        function closeLightbox() {
+            if (!imageLightbox || !lightboxImage) {
+                return;
+            }
+
+            imageLightbox.hidden = true;
+            lightboxImage.src = "";
+        }
 
         function formatVideoLength(seconds) {
             if (seconds < 60) {
