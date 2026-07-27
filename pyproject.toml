@@ -1,6 +1,10 @@
 [project]
 name = "motionpi"
 version = "0.1.0"
+dependencies = [
+    "Flask",
+    "Pillow",
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
