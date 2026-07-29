@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>{% block title %}Motionpi{% endblock %}</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='main.css') }}">
+</head>
+<body>
+    <main class="page">
+        <header class="card">
+            <div class="card-body card-body-tight page-header-row">
+                <div class="page-header-copy">
+                    <h1 class="page-title">Motionpi</h1>
+                    <p class="page-subtitle">
+                        Motion sensor activated camera
+                    </p>
+                </div>
+
+                {% block header_action %}{% endblock %}
+            </div>
+        </header>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

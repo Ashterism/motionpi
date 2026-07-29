@@ -86,3 +86,31 @@ pip install -e .
 ```bash
 python -m motionpi
 ```
+
+## Install as a systemd service
+
+Copy the service file:
+
+```bash
+sudo cp src/motionpi/utils/motionpi.service /etc/systemd/system/motionpi.service
+```
+
+Reload systemd and enable the service:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable motionpi.service
+sudo systemctl start motionpi.service
+```
+
+Check it's running:
+
+```bash
+systemctl status motionpi.service
+```
+
+View the logs:
+
+```bash
+journalctl -u motionpi.service -f
+```
