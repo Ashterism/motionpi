@@ -14,6 +14,9 @@ from ..control.controller import (
     get_timelapse_video,
     get_sensor_state,
     set_sensor_state,
+    get_settings_options,
+    get_settings,
+    update_settings,
 )
 from ..process.storage import Storage
 
@@ -144,7 +147,21 @@ def create_video():
 
     return redirect(f"/gallery?session={session_path}")
 
-    
+
+@app.route("/settings", methods=["GET", "POST"])
+def settings():
+    if request.method == "POST":
+        update_settings(request.form)
+        return redirect("/settings")
+
+    return render_template(
+        "settings.html",
+        settings_options=get_settings_options(),
+        current_settings=get_settings(),
+    )
+
+
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5003)
 

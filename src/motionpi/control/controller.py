@@ -6,12 +6,14 @@ from ..capture.camera import Camera
 from ..capture.timelapse import stop_timelapse
 from ..capture.motion_trigger import stop_motion_sensor
 from ..process.storage import Storage
+from ..process.settings_manager import SettingsManager
 from ..process.video_maker import create_timelapse_video
 
 
 # runmode = detect_runmode()
 camera = Camera()
 storage = Storage()
+settings_manager = SettingsManager(storage)
 
 # CONTROL POINTS
 
@@ -89,6 +91,18 @@ def get_timelapse_stopped():
 
 def get_timelapse_video(session_path, fps):
     return create_timelapse_video(session_path, fps)
+
+
+def get_settings_options():
+    return settings_manager.get_options()
+
+
+def get_settings():
+    return settings_manager.get_settings()
+
+
+def update_settings(data):
+    return settings_manager.update_settings(data)
 
 
 # HELPER

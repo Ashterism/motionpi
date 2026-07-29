@@ -263,7 +263,8 @@ body {
 }
 
 #create-video-form,
-#timelapse-form {
+#timelapse-form,
+#settings-form {
     display: contents;
 }
 

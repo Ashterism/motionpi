@@ -1,8 +1,73 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Motionpi - gallery</title>
-    <link rel="stylesheet" href="/static/main.css">
-</head>
+{% extends "layout.html" %}
+
+{% block title %}Motionpi - Settings{% endblock %}
+
+{% block header_action %}
+<a href="{{ url_for('home') }}" class="icon-button" aria-label="Home">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+         stroke-width="1.5" stroke="currentColor" class="nav-icon">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+    </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" action="{{ url_for('settings') }}" id="settings-form">
+    <section class="card">
+        <div class="card-body settings-card-body">
+            <h2 class="section-title">Operating profile</h2>
+            <p class="status-line">Choose how this Motionpi will be used.</p>
+
+            <div class="controls-stack">
+                <select name="profile" class="select-control" aria-label="Operating profile">
+                    {% for value, label in settings_options.profiles.items() %}
+                    <option value="{{ value }}" {% if current_settings.profile == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-body settings-card-body">
+            <h2 class="section-title">Motion capture</h2>
+            <p class="status-line">Changes apply the next time motion sensing starts.</p>
+
+            <div class="controls-stack">
+                <label class="status-line" for="photo-burst-count">Photos per trigger</label>
+                <select name="photo_burst_count" class="select-control" id="photo-burst-count">
+                    {% for value, label in settings_options.photo_burst_counts.items() %}
+                    <option value="{{ value }}" {% if current_settings.photo_burst_count == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <label class="status-line" for="photo-burst-gap">Gap between photos</label>
+                <select name="photo_burst_gap_secs" class="select-control" id="photo-burst-gap">
+                    {% for value, label in settings_options.photo_burst_gaps.items() %}
+                    <option value="{{ value }}" {% if current_settings.photo_burst_gap_secs == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <label class="status-line" for="photo-cooldown">Cooldown after a trigger</label>
+                <select name="photo_cooldown_secs" class="select-control" id="photo-cooldown">
+                    {% for value, label in settings_options.photo_cooldowns.items() %}
+                    <option value="{{ value }}" {% if current_settings.photo_cooldown_secs == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <label class="status-line" for="session-timeout">End session after no motion</label>
+                <select name="session_timeout_secs" class="select-control" id="session-timeout">
+                    {% for value, label in settings_options.session_timeouts.items() %}
+                    <option value="{{ value }}" {% if current_settings.session_timeout_secs == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <button class="button" type="submit">Save settings</button>
+    </section>
+</form>
+{% endblock %}
