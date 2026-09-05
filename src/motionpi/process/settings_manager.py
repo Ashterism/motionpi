@@ -16,8 +16,8 @@ class SettingsManager:
 
         self.options = {
             "profiles": {
-                "cat": "Cat",
-                "wildlife": "Field / Wildlife",
+                "cat": "Cat monitor",
+                "wildlife": "Glisglis motion tracker",
             },
             "photo_burst_counts": {1: "1 photo", 3: "3 photos", 5: "5 photos"},
             "photo_burst_gaps": {
