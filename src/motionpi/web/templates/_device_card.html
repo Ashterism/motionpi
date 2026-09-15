@@ -1,0 +1,46 @@
+<section class="card">
+    <div class="card-body settings-card-body">
+        <h2 class="section-title">Device</h2>
+        <p class="status-line">Reboot {{ device_name }} to apply changes that require a restart.</p>
+        <p class="estimate-text">The device will be unavailable for a minute or two.</p>
+        <button type="button" class="button" id="reboot-device-button">Reboot {{ device_name }}</button>
+        <p class="status-line warning-text" id="reboot-device-status" hidden></p>
+    </div>
+</section>
+
+<script>
+(function () {
+    const button = document.getElementById("reboot-device-button");
+    const status = document.getElementById("reboot-device-status");
+
+    if (!button || !status) return;
+
+    button.addEventListener("click", async function () {
+        if (!window.confirm("Reboot {{ device_name }} now? The device will be unreachable for a minute or two.")) {
+            return;
+        }
+
+        button.disabled = true;
+        status.hidden = false;
+        status.textContent = "Starting reboot…";
+
+        try {
+            const response = await fetch("{{ url_for('device_reboot') }}", {
+                method: "POST",
+                headers: {"X-Requested-With": "fetch"},
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.ok) {
+                throw new Error(data.error || "Reboot request failed");
+            }
+
+            status.textContent = "Reboot started. This page will stop responding shortly.";
+        } catch (error) {
+            status.textContent = error.message || "Reboot request failed";
+            button.disabled = false;
+        }
+    });
+})();
+</script>
