@@ -1,0 +1,7 @@
+project_name: motionpi
+user: ash
+install_path: /home/ash/motionpi
+service_command: /home/ash/motionpi/.venv/bin/python3 -m motionpi
+hotspot_connection_name: motionpi-hotspot
+hotspot_ssid: glisglis
+network_mode: auto
