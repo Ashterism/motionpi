@@ -32,7 +32,7 @@
     <section class="card">
         <div class="card-body settings-card-body">
             <h2 class="section-title">Motion capture</h2>
-            <p class="status-line">Changes apply the next time motion sensing starts.</p>
+            <p class="status-line">Saved changes apply the next time motion sensing starts.</p>
 
             <div class="controls-stack">
                 <label class="status-line" for="photo-burst-count">Photos per trigger</label>
@@ -67,6 +67,9 @@
     </section>
 
     <section>
+        <p class="status-line warning-text" id="unsaved-settings-message" hidden>
+            Unsaved changes — press Save settings to apply them.
+        </p>
         <button class="button" type="submit">Save settings</button>
     </section>
 </form>
@@ -74,4 +77,33 @@
 <section>
     <a href="{{ url_for('network_admin') }}" class="button button-link">Network settings</a>
 </section>
+
+{% include "_device_card.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const form = document.getElementById("settings-form");
+    const message = document.getElementById("unsaved-settings-message");
+
+    if (!form || !message) return;
+
+    const selects = Array.from(form.querySelectorAll("select"));
+    const initialValues = new Map(selects.map(function (select) {
+        return [select.name, select.value];
+    }));
+
+    function updateUnsavedState() {
+        const changed = selects.some(function (select) {
+            return initialValues.get(select.name) !== select.value;
+        });
+        message.hidden = !changed;
+    }
+
+    selects.forEach(function (select) {
+        select.addEventListener("change", updateUnsavedState);
+    });
+})();
+</script>
 {% endblock %}

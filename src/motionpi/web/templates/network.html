@@ -29,15 +29,18 @@
 <section class="card">
     <div class="card-body settings-card-body">
         <h2 class="section-title">Boot network mode</h2>
-        <p class="status-line">This only changes what Genie does on the next reboot.</p>
+        <p class="status-line">Saved changes take effect on the next reboot.</p>
 
-        <form method="post" action="{{ url_for('network_mode') }}">
+        <form method="post" action="{{ url_for('network_mode') }}" id="network-mode-form">
             <div class="controls-stack">
-                <select name="mode" class="select-control" aria-label="Boot network mode">
+                <select name="mode" class="select-control" id="network-mode-select" aria-label="Boot network mode">
                     {% for value, label in network_options.modes.items() %}
                     <option value="{{ value }}" {% if saved_mode == value %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
+                <p class="status-line warning-text" id="unsaved-network-message" hidden>
+                    Unsaved change — press Save boot mode to apply it.
+                </p>
                 <button type="submit" class="button">Save boot mode</button>
             </div>
         </form>
@@ -78,6 +81,8 @@
     </div>
 </section>
 {% endif %}
+
+{% include "_device_card.html" %}
 {% endblock %}
 
 {% block scripts %}
@@ -90,5 +95,15 @@
             }
         });
     });
+
+    const networkModeSelect = document.getElementById("network-mode-select");
+    const unsavedNetworkMessage = document.getElementById("unsaved-network-message");
+
+    if (networkModeSelect && unsavedNetworkMessage) {
+        const initialMode = networkModeSelect.value;
+        networkModeSelect.addEventListener("change", function () {
+            unsavedNetworkMessage.hidden = networkModeSelect.value === initialMode;
+        });
+    }
 </script>
 {% endblock %}
