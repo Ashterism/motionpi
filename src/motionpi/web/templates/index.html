@@ -14,17 +14,15 @@
 
 {% block content %}
 
-
-        {% if not is_running %}
         <section class="card">
             <div class="card-body">
                 <h2 class="section-title">Status</h2>
-                <p class="status-line">Status: {{ "RUNNING" if is_running else "READY" }}</p>
+                <p class="status-line">Status: {{ status_label }}</p>
+                <p class="status-line">Mode: {{ mode_label }}</p>
                 <p class="status-line">Power: connected</p>
                 <p class="status-line">Storage: 12.4GB free</p>
             </div>
         </section>
-        {% endif %}
 
         <section>
             <form method="post" action="/take_photo">
