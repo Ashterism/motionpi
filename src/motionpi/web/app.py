@@ -62,12 +62,26 @@ def home():
     is_running = storage.check_lockfile("camera_in_use")
     motion_sensor_state = get_sensor_state()
 
+    if motion_sensor_state == "on":
+        status_label = "Running (motion)"
+    elif is_running:
+        status_label = "Running (timelapse)"
+    else:
+        status_label = "Ready"
+
+    settings_options = get_settings_options()
+    current_settings = get_settings()
+    profile = current_settings.get("profile", "cat")
+    mode_label = settings_options.get("profiles", {}).get(profile, profile)
+
     return render_template(
         "index.html",
         image_path=image_path,
         taken_time=taken_time,
         is_running=is_running,
         motion_sensor_state=motion_sensor_state,
+        status_label=status_label,
+        mode_label=mode_label,
     )
 
 
