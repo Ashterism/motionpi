@@ -1,3 +1,7 @@
+import shutil
+import socket
+import subprocess
+
 from flask import (
     Flask,
     render_template,
@@ -24,6 +28,11 @@ from ..process.network_admin import get_network_manager
 storage = Storage()
 
 app = Flask(__name__)
+
+
+@app.context_processor
+def device_context():
+    return {"device_name": socket.gethostname()}
 
 
 # route to homepage
@@ -207,6 +216,37 @@ def network_add():
         request.form.get("password", ""),
     )
     return redirect("/network")
+
+
+@app.route("/device/reboot", methods=["POST"])
+def device_reboot():
+    systemctl = shutil.which("systemctl") or "/usr/bin/systemctl"
+
+    permission_check = subprocess.run(
+        ["sudo", "-n", "-l", systemctl, "reboot"],
+        capture_output=True,
+        text=True,
+    )
+
+    if permission_check.returncode != 0:
+        return (
+            jsonify(
+                {
+                    "ok": False,
+                    "error": "Motionpi does not have non-interactive permission to reboot this device.",
+                }
+            ),
+            503,
+        )
+
+    subprocess.Popen(
+        ["sudo", "-n", systemctl, "reboot"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+
+    return jsonify({"ok": True, "message": "Reboot started"}), 202
 
 
 if __name__ == "__main__":
