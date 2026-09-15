@@ -19,6 +19,7 @@ from ..control.controller import (
     update_settings,
 )
 from ..process.storage import Storage
+from ..process.network_admin import get_network_manager
 
 storage = Storage()
 
@@ -121,20 +122,18 @@ def stop_timelapse():
 
 @app.route("/gallery")
 def gallery():
-
     sessions = storage.list_sessions()
     selected_session = request.args.get("session")
     session_media = storage.list_session_media(selected_session)
 
     timelapse_videos = storage.list_timelapse_vids()
 
-
     return render_template(
-    "gallery.html",
-    sessions=sessions,
-    selected_session=selected_session,
-    session_media=session_media,
-    timelapse_videos=timelapse_videos,
+        "gallery.html",
+        sessions=sessions,
+        selected_session=selected_session,
+        session_media=session_media,
+        timelapse_videos=timelapse_videos,
     )
 
 
@@ -160,6 +159,54 @@ def settings():
         current_settings=get_settings(),
     )
 
+
+@app.route("/network")
+def network_admin():
+    try:
+        manager = get_network_manager()
+        saved_mode = manager.get_network_mode().get("mode", "hotspot")
+
+        return render_template(
+            "network.html",
+            error=None,
+            network_options=manager.get_network_options(),
+            saved_mode=saved_mode,
+            current_mode=manager.get_current_network_mode(),
+            networks=manager.get_saved_wifi_networks(),
+        )
+    except Exception as exc:
+        return render_template(
+            "network.html",
+            error=str(exc),
+            network_options={"modes": {}},
+            saved_mode="unknown",
+            current_mode="unknown",
+            networks=[],
+        )
+
+
+@app.route("/network/mode", methods=["POST"])
+def network_mode():
+    manager = get_network_manager()
+    manager.update_network_settings(request.form)
+    return redirect("/network")
+
+
+@app.route("/network/forget", methods=["POST"])
+def network_forget():
+    manager = get_network_manager()
+    manager.forget_wifi_network(request.form.get("connection_name", ""))
+    return redirect("/network")
+
+
+@app.route("/network/add", methods=["POST"])
+def network_add():
+    manager = get_network_manager()
+    manager.add_wifi_network(
+        request.form.get("ssid", ""),
+        request.form.get("password", ""),
+    )
+    return redirect("/network")
 
 
 if __name__ == "__main__":

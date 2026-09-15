@@ -102,6 +102,11 @@ body {
     line-height: 1.35;
 }
 
+.warning-text {
+    color: #8A3B12;
+    font-weight: 700;
+}
+
 .button {
     width: 100%;
     min-height: 60px;
@@ -113,6 +118,13 @@ body {
     font: inherit;
     font-size: 1rem;
     cursor: pointer;
+}
+
+.button-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
 }
 
 .button:disabled {
@@ -241,6 +253,12 @@ body {
     display: flex;
     flex-direction: column;
     gap: 16px;
+}
+
+.network-action-form + .network-action-form {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-soft);
 }
 
 .select-control {
