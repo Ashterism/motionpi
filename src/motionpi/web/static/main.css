@@ -429,6 +429,39 @@ body {
     margin-bottom: 12px;
 }
 
+.test-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding-left: 22px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.test-goal,
+.result-guidance {
+    margin: 0;
+    padding: 12px;
+    border-radius: 8px;
+    background: #F8EFE3;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.result-guidance {
+    margin-top: 16px;
+    border-left: 4px solid var(--accent);
+}
+
+.result-guidance .section-title {
+    margin-bottom: 6px;
+}
+
+.result-guidance p {
+    margin: 0;
+}
+
 .guide-copy {
     display: flex;
     flex-direction: column;

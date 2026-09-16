@@ -43,9 +43,17 @@
 <section class="card">
     <div class="card-body">
         <h2 class="section-title">60-second PIR test</h2>
-        <p class="status-line">
-            Captures are paused during the test. Move through the detection area, then
-            adjust the sensor and repeat as needed.
+        <ol class="test-steps">
+            <li>Press <strong>Start test</strong>. Photographs are paused for 60 seconds.</li>
+            <li>Step away and wait for the indicator above to show <strong>LOW</strong>.</li>
+            <li>Walk across the sensor's view once, then step away or stand still.</li>
+            <li>Watch for <strong>HIGH</strong>, followed by a return to <strong>LOW</strong>.</li>
+            <li>Repeat two or three times, always waiting for LOW between passes.</li>
+            <li>Wait for the result and follow the advice shown below.</li>
+        </ol>
+        <p class="test-goal">
+            <strong>Target:</strong> one motion event per pass, a short HIGH period,
+            and LOW before the next pass.
         </p>
         <button class="button" type="button" id="start-test">Start 60-second PIR test</button>
         <p class="status-line" id="test-progress" hidden></p>
@@ -61,6 +69,10 @@
                 <dt>Finished state</dt>
                 <dd id="test-finished-state">—</dd>
             </dl>
+            <div class="result-guidance" id="result-guidance">
+                <h3 class="section-title">What to do next</h3>
+                <p id="result-advice"></p>
+            </div>
         </div>
     </div>
 </section>
@@ -128,7 +140,7 @@
             : "Start 60-second PIR test";
         progress.hidden = !running;
         progress.textContent = running
-            ? "Captures paused. Keep moving through the area as required."
+            ? "Captures paused. Make one pass, step away, and wait for LOW before repeating."
             : "";
 
         if (test.status === "complete" && test.summary) {
@@ -142,6 +154,22 @@
                 ? "None measured"
                 : summary.shortest_gap_seconds + "s";
             byId("test-finished-state").textContent = summary.sensor_state;
+
+            const durations = summary.high_durations_seconds || [];
+            const longestHigh = durations.length ? Math.max.apply(null, durations) : 0;
+            let advice;
+
+            if (summary.sensor_state === "HIGH" || longestHigh >= 15) {
+                advice = "The sensor stayed HIGH too long. Turn the TIME/DELAY control down (usually anticlockwise), then run the test again. Leave sensitivity unchanged for now. If the sensor is in repeat/retrigger mode, step completely away after each pass so it has a chance to return LOW.";
+            } else if (summary.motion_events === 0) {
+                advice = "No movement was detected. Move closer for the next test. If that works, increase SENSITIVITY gradually until it detects movement at the distance you need.";
+            } else if (summary.motion_events >= 2 && longestHigh <= 10) {
+                advice = "This looks healthy: the sensor detected separate passes and returned LOW. If the detection distance is wrong, adjust SENSITIVITY slightly and repeat.";
+            } else {
+                advice = "The sensor returned LOW, but there were not enough separate passes to judge it confidently. Repeat the test with two or three passes, waiting for LOW each time.";
+            }
+
+            byId("result-advice").textContent = advice;
         } else if (test.status === "error") {
             progress.hidden = false;
             progress.textContent = test.error || "The PIR test could not be completed.";
