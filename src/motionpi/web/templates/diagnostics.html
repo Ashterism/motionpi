@@ -48,12 +48,13 @@
             <li>Step away and wait for the indicator above to show <strong>LOW</strong>.</li>
             <li>Walk across the sensor's view once, then step away or stand still.</li>
             <li>Watch for <strong>HIGH</strong>, followed by a return to <strong>LOW</strong>.</li>
-            <li>Repeat two or three times, always waiting for LOW between passes.</li>
+            <li>Repeat several deliberate movements, always waiting for LOW between them.</li>
+            <li>Then keep the detection area completely still for 10–15 seconds.</li>
             <li>Wait for the result and follow the advice shown below.</li>
         </ol>
         <p class="test-goal">
-            <strong>Target:</strong> one motion event per pass, a short HIGH period,
-            and LOW before the next pass.
+            <strong>Target:</strong> one event for each deliberate movement, a short
+            HIGH period, LOW before the next movement, and no events while the area is still.
         </p>
         <button class="button" type="button" id="start-test">Start 60-second PIR test</button>
         <p class="status-line" id="test-progress" hidden></p>
@@ -140,7 +141,7 @@
             : "Start 60-second PIR test";
         progress.hidden = !running;
         progress.textContent = running
-            ? "Captures paused. Make one pass, step away, and wait for LOW before repeating."
+            ? "Captures paused. Make deliberate movements, wait for LOW between them, then hold the area still."
             : "";
 
         if (test.status === "complete" && test.summary) {
@@ -163,12 +164,10 @@
                 advice = "The sensor stayed HIGH too long. Turn the TIME/DELAY control down (usually anticlockwise), then run the test again. Leave sensitivity unchanged for now. If the sensor is in repeat/retrigger mode, step completely away after each pass so it has a chance to return LOW.";
             } else if (summary.motion_events === 0) {
                 advice = "No movement was detected. Move closer for the next test. If that works, increase SENSITIVITY gradually until it detects movement at the distance you need.";
-            } else if (summary.motion_events > 5 && longestHigh <= 10) {
-                advice = "The TIME/DELAY setting now looks good: every HIGH period was brief and the sensor repeatedly returned LOW. There were more events than the target two or three passes. If you were moving continuously, rerun the test with only two or three clean passes. If you only made two or three passes, reduce SENSITIVITY slightly and test again. Finishing HIGH is not a problem when that final HIGH period is brief.";
-            } else if (summary.motion_events >= 2 && longestHigh <= 10) {
-                advice = "This looks healthy: the sensor detected separate passes, each HIGH period was brief, and it returned LOW between passes. Finishing HIGH only means the test ended during a detection; it is not a problem when that HIGH period is brief. If the detection distance is wrong, adjust SENSITIVITY slightly and repeat.";
+            } else if (summary.motion_events >= 1 && longestHigh <= 10) {
+                advice = "The TIME/DELAY setting looks good: every HIGH period was brief and the sensor returned LOW. The event count should match the movements you deliberately made; there is no fixed target. For a small animal, do not reduce SENSITIVITY merely because there were many intentional movements. Reduce it only if events occur while the area is still or outside the intended detection zone. Increase it if a small warm target moving through the animal's actual path is missed. Finishing HIGH is harmless when that final HIGH period is brief.";
             } else {
-                advice = "The sensor returned LOW, but there were not enough separate passes to judge it confidently. Repeat the test with two or three passes, waiting for LOW each time.";
+                advice = "The sensor returned LOW, but there was not enough activity to judge it confidently. Repeat the test with several deliberate movements followed by 10–15 seconds of complete stillness.";
             }
 
             byId("result-advice").textContent = advice;
