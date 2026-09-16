@@ -21,6 +21,8 @@ from ..control.controller import (
     get_settings_options,
     get_settings,
     update_settings,
+    get_pir_diagnostics,
+    start_pir_test,
 )
 from ..process.storage import Storage
 from ..process.network_admin import get_network_manager
@@ -181,6 +183,24 @@ def settings():
         settings_options=get_settings_options(),
         current_settings=get_settings(),
     )
+
+
+@app.route("/diagnostics")
+def diagnostics():
+    return render_template("diagnostics.html")
+
+
+@app.route("/api/diagnostics/pir")
+def pir_diagnostics_status():
+    return jsonify(get_pir_diagnostics())
+
+
+@app.route("/api/diagnostics/pir/test", methods=["POST"])
+def pir_diagnostics_test():
+    if not start_pir_test(60):
+        return jsonify({"ok": False, "error": "A PIR test is already running."}), 409
+
+    return jsonify({"ok": True, "message": "60-second PIR test started."}), 202
 
 
 @app.route("/network")

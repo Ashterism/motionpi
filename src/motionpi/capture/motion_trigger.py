@@ -7,6 +7,7 @@ from ..utils import logging_config
 from ..utils.environment_detector import detect_runmode
 from ..process.storage import Storage
 from ..process.settings_manager import SettingsManager
+from ..process.pir_diagnostics import PIRDiagnostics
 from ..process import pid_manager as pid
 from ..capture.camera import Camera
 from ..hardware.pir import PIR
@@ -23,6 +24,7 @@ settings_manager = SettingsManager(storage)
 runmode = detect_runmode()
 cam = Camera(runmode)
 pir = PIR(runmode)
+diagnostics = PIRDiagnostics(storage)
 
 def motion_trigger(inactivity_timeout=None):
     settings = settings_manager.get_settings()
@@ -35,9 +37,14 @@ def motion_trigger(inactivity_timeout=None):
 
     active_session = False
     last_motion_time = None
+    armed = True
 
     while True:
-        if pir.motion_detected():
+        pir_is_high = bool(pir.motion_detected())
+        diagnostics.record_reading(pir_is_high)
+
+        if pir_is_high and armed:
+            armed = False
             logger.debug("motion detected")
 
             if not active_session:
@@ -46,14 +53,19 @@ def motion_trigger(inactivity_timeout=None):
                 last_motion_time = datetime.now()
                 logger.info(f"Starting motion session: {directory}")
 
-            for _ in range(settings["photo_burst_count"]):
+            diagnostics.set_capture_state("capturing", triggered=True)
+            for index in range(settings["photo_burst_count"]):
                 cam.take_image(directory)
-                time.sleep(settings["photo_burst_gap_secs"])
+                if index < settings["photo_burst_count"] - 1:
+                    time.sleep(settings["photo_burst_gap_secs"])
 
             last_motion_time = datetime.now()
+            diagnostics.set_capture_state("cooldown")
             time.sleep(settings["photo_cooldown_secs"])
+            diagnostics.set_capture_state("idle")
 
-        else:
+        elif not pir_is_high:
+            armed = True
             logger.debug("no motion detected")
 
             if active_session and last_motion_time:
@@ -64,6 +76,8 @@ def motion_trigger(inactivity_timeout=None):
                     active_session = False
                     last_motion_time = None
                     directory = None
+
+            diagnostics.set_capture_state("idle")
 
         time.sleep(secs_between_pir_polls)
 

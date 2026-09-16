@@ -1,4 +1,7 @@
-import time, sys, subprocess
+import sys
+import subprocess
+import threading
+import time
 
 
 from ..process import pid_manager as pid
@@ -7,13 +10,20 @@ from ..capture.timelapse import stop_timelapse
 from ..capture.motion_trigger import stop_motion_sensor
 from ..process.storage import Storage
 from ..process.settings_manager import SettingsManager
+from ..process.pir_diagnostics import PIRDiagnostics
 from ..process.video_maker import create_timelapse_video
+from ..hardware.pir import PIR
+from ..utils.environment_detector import detect_runmode
 
 
 # runmode = detect_runmode()
 camera = Camera()
 storage = Storage()
 settings_manager = SettingsManager(storage)
+pir_diagnostics = PIRDiagnostics(storage)
+_diagnostics_pir = None
+_pir_test_thread = None
+_pir_test_lock = threading.Lock()
 
 # CONTROL POINTS
 
@@ -64,9 +74,12 @@ def set_sensor_state(state):
     inactivity_timeout = None # for wiring up later
 
     if state == "on":
+        if storage.check_lockfile("pir_test"):
+            return False
+
         directory = use_camera("timelapse")
         if directory == None:
-            return
+            return False
 
         motion_sensor_process = subprocess.Popen(
             [
@@ -79,10 +92,15 @@ def set_sensor_state(state):
 
         pid.write_pid("motion_sensor", motion_sensor_process.pid)
         storage.write_json(filepath, state)
+        return True
 
     elif state == "off":
         stop_motion_sensor()
         storage.write_json(filepath, state)
+        pir_diagnostics.set_capture_state("idle")
+        return True
+
+    return False
 
 
 def get_timelapse_stopped():
@@ -103,6 +121,62 @@ def get_settings():
 
 def update_settings(data):
     return settings_manager.update_settings(data)
+
+
+def get_pir_diagnostics():
+    global _diagnostics_pir
+
+    if get_sensor_state() != "on" and not storage.check_lockfile("pir_test"):
+        if _diagnostics_pir is None:
+            _diagnostics_pir = PIR(detect_runmode())
+        pir_diagnostics.record_reading(_diagnostics_pir.motion_detected())
+
+    return pir_diagnostics.snapshot()
+
+
+def start_pir_test(duration_seconds=60):
+    global _pir_test_thread
+
+    with _pir_test_lock:
+        if _pir_test_thread and _pir_test_thread.is_alive():
+            return False
+
+        storage.create_lockfile("pir_test")
+        pir_diagnostics.start_test(duration_seconds)
+        _pir_test_thread = threading.Thread(
+            target=_run_pir_test,
+            args=(duration_seconds,),
+            daemon=True,
+            name="pir-diagnostics-test",
+        )
+        _pir_test_thread.start()
+        return True
+
+
+def _run_pir_test(duration_seconds):
+    was_motion_on = get_sensor_state() == "on"
+
+    try:
+        if was_motion_on:
+            set_sensor_state("off")
+
+        test_pir = PIR(detect_runmode())
+        deadline = time.monotonic() + duration_seconds
+
+        while time.monotonic() < deadline:
+            pir_diagnostics.record_reading(
+                test_pir.motion_detected(),
+                source="test",
+            )
+            time.sleep(0.2)
+
+        pir_diagnostics.complete_test()
+    except Exception as exc:
+        pir_diagnostics.fail_test(exc)
+    finally:
+        storage.delete_lockfile("pir_test")
+        if was_motion_on:
+            set_sensor_state("on")
 
 
 # HELPER

@@ -1,0 +1,194 @@
+{% extends "layout.html" %}
+
+{% block title %}Motionpi - Diagnostics{% endblock %}
+
+{% block header_action %}
+<a href="{{ url_for('settings') }}" class="icon-button" aria-label="Back to settings">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+         stroke-width="1.5" stroke="currentColor" class="nav-icon">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+    </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-body">
+        <div class="diagnostic-heading-row">
+            <div>
+                <h2 class="section-title">Motion sensor</h2>
+                <p class="status-line">GPIO 17</p>
+            </div>
+            <span class="state-badge state-unknown" id="pir-state">UNKNOWN</span>
+        </div>
+
+        <dl class="diagnostic-grid">
+            <dt>State since</dt>
+            <dd id="state-since">—</dd>
+            <dt>Last HIGH</dt>
+            <dd id="last-high">—</dd>
+            <dt>Last LOW</dt>
+            <dd id="last-low">—</dd>
+            <dt>Transitions</dt>
+            <dd><span id="transition-count">0</span> in the last 60 seconds</dd>
+            <dt>Capture state</dt>
+            <dd id="capture-state">Idle</dd>
+            <dt>Last trigger</dt>
+            <dd id="last-trigger">—</dd>
+        </dl>
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-body">
+        <h2 class="section-title">60-second PIR test</h2>
+        <p class="status-line">
+            Captures are paused during the test. Move through the detection area, then
+            adjust the sensor and repeat as needed.
+        </p>
+        <button class="button" type="button" id="start-test">Start 60-second PIR test</button>
+        <p class="status-line" id="test-progress" hidden></p>
+        <div class="test-results" id="test-results" hidden>
+            <h3 class="section-title">Last test</h3>
+            <dl class="diagnostic-grid">
+                <dt>Motion events</dt>
+                <dd id="test-events">0</dd>
+                <dt>HIGH durations</dt>
+                <dd id="test-high-durations">—</dd>
+                <dt>Shortest LOW gap</dt>
+                <dd id="test-shortest-gap">—</dd>
+                <dt>Finished state</dt>
+                <dd id="test-finished-state">—</dd>
+            </dl>
+        </div>
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-body">
+        <h2 class="section-title">Setup guide</h2>
+        <div class="guide-copy">
+            <p><strong>Sensitivity:</strong> adjust the sensitivity pot, then move at the desired detection distance and watch the live HIGH/LOW indicator.</p>
+            <p><strong>Delay:</strong> trigger the sensor once. The test measures how long its output stays HIGH.</p>
+            <p><strong>Retriggering:</strong> check the event log to see whether the sensor returns LOW between activations.</p>
+        </div>
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-body">
+        <h2 class="section-title">Live event log</h2>
+        <ol class="event-log" id="event-log">
+            <li class="event-empty">Waiting for sensor activity…</li>
+        </ol>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const byId = function (id) { return document.getElementById(id); };
+    const startButton = byId("start-test");
+
+    function localTime(value) {
+        if (!value) return "—";
+        return new Date(value).toLocaleTimeString([], {
+            hour: "2-digit", minute: "2-digit", second: "2-digit"
+        });
+    }
+
+    function stateAge(value) {
+        if (!value) return "—";
+        const seconds = Math.max(0, Math.round((Date.now() - new Date(value).getTime()) / 1000));
+        return seconds + " seconds";
+    }
+
+    function render(data) {
+        const pirState = byId("pir-state");
+        pirState.textContent = data.pir_state;
+        pirState.className = "state-badge state-" + data.pir_state.toLowerCase();
+
+        byId("state-since").textContent = stateAge(data.state_since);
+        byId("last-high").textContent = localTime(data.last_high);
+        byId("last-low").textContent = localTime(data.last_low);
+        byId("transition-count").textContent = data.transitions_last_60_seconds;
+        byId("capture-state").textContent = data.capture_state.charAt(0).toUpperCase() + data.capture_state.slice(1);
+        byId("last-trigger").textContent = localTime(data.last_capture_trigger);
+
+        const test = data.test || {};
+        const progress = byId("test-progress");
+        const results = byId("test-results");
+        const running = test.status === "running";
+        startButton.disabled = running;
+        startButton.classList.toggle("button-running", running);
+        startButton.textContent = running
+            ? "Testing… " + test.remaining_seconds + "s"
+            : "Start 60-second PIR test";
+        progress.hidden = !running;
+        progress.textContent = running
+            ? "Captures paused. Keep moving through the area as required."
+            : "";
+
+        if (test.status === "complete" && test.summary) {
+            const summary = test.summary;
+            results.hidden = false;
+            byId("test-events").textContent = summary.motion_events;
+            byId("test-high-durations").textContent = summary.high_durations_seconds.length
+                ? summary.high_durations_seconds.map(function (value) { return value + "s"; }).join(", ")
+                : "None measured";
+            byId("test-shortest-gap").textContent = summary.shortest_gap_seconds === null
+                ? "None measured"
+                : summary.shortest_gap_seconds + "s";
+            byId("test-finished-state").textContent = summary.sensor_state;
+        } else if (test.status === "error") {
+            progress.hidden = false;
+            progress.textContent = test.error || "The PIR test could not be completed.";
+        }
+
+        const log = byId("event-log");
+        log.innerHTML = "";
+        if (!data.events.length) {
+            log.innerHTML = '<li class="event-empty">Waiting for sensor activity…</li>';
+        } else {
+            data.events.slice(0, 30).forEach(function (event) {
+                const item = document.createElement("li");
+                const time = document.createElement("time");
+                const message = document.createElement("span");
+                time.textContent = localTime(event.time);
+                message.textContent = event.message;
+                item.appendChild(time);
+                item.appendChild(message);
+                log.appendChild(item);
+            });
+        }
+    }
+
+    async function refresh() {
+        try {
+            const response = await fetch("{{ url_for('pir_diagnostics_status') }}", {cache: "no-store"});
+            if (!response.ok) throw new Error("Could not load diagnostics");
+            render(await response.json());
+        } catch (error) {
+            byId("test-progress").hidden = false;
+            byId("test-progress").textContent = error.message;
+        }
+    }
+
+    startButton.addEventListener("click", async function () {
+        startButton.disabled = true;
+        const response = await fetch("{{ url_for('pir_diagnostics_test') }}", {method: "POST"});
+        if (!response.ok) {
+            const result = await response.json();
+            byId("test-progress").hidden = false;
+            byId("test-progress").textContent = result.error || "Could not start test";
+        }
+        await refresh();
+    });
+
+    refresh();
+    window.setInterval(refresh, 500);
+})();
+</script>
+{% endblock %}
